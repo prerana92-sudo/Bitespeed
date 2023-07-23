@@ -3,10 +3,10 @@ const mysql = require('mysql2');
 
 // MySQL Connection Pool
 const connection = mysql.createConnection({
-  host: '127.0.0.1',
-  user: 'root',
-  password: '',
-  database: 'Bitespeed_Contacts',
+  host: process.env.MYSQL_HOST ||'127.0.0.1',
+  user: process.env.MYSQL_USER ||'root',
+  password: process.env.MYSQL_PASSWORD ||'',
+  database: process.env.MYSQL_DATABASE ||'Bitespeed_Contacts',
 });
 
 // Connect to the database
