@@ -3,7 +3,7 @@ const mysql = require('mysql2');
 
 // MySQL Connection Pool
 const connection = mysql.createConnection({
-  host: process.env.MYSQL_HOST ||'127.0.0.1',
+  host: process.env.MYSQL_HOST ||'db',
   user: process.env.MYSQL_USER ||'root',
   password: process.env.MYSQL_PASSWORD ||'',
   database: process.env.MYSQL_DATABASE ||'Bitespeed_Contacts',
@@ -52,10 +52,10 @@ const identifyContact = async (req, res) => {
     try {
       const [results] = await connection.promise().query(query, [email, phoneNumber, email, phoneNumber]);
 
-      //incase when one parameter is null and email or phone doesnot exist.
-      if(results.length == 0){
-        return res.status(400).json({ error: 'Invalid data. User not found!' });
-      }
+      // //incase when one parameter is null and email or phone doesnot exist.
+      // if(results.length == 0){
+      //   return res.status(400).json({ error: 'Invalid data. User not found!' });
+      // }
 
       let filteredResult;
 
