@@ -1,20 +1,27 @@
-# Use the official Node.js image as the base image
+# Use an official Node.js runtime as a base image
 FROM node:14
 
-# Set the working directory inside the container
-WORKDIR /app
+# Set the Node.js environment to 'production'
+ENV NODE_ENV=production
 
-# Copy the package.json and package-lock.json files
-COPY BiteSpeed/package*.json ./
+# Set the working directory in the container
+WORKDIR /usr/src/app
 
-# Install app dependencies
-RUN npm install
+# Copy package.json and package-lock.json
+COPY package*.json ./
 
-# Copy the rest of the app's source code
-COPY BiteSpeed/src/../
+# Install dependencies using 'npm ci' for production
+RUN npm ci --only=production
 
-# Expose the port that the Express app will listen on
+# Copy the rest of the application code
+COPY . .
+
+# Add a non-root user
+RUN adduser --disabled-password appuser
+USER appuser
+
+# Expose the port on which your Node.js app runs (change it if your app uses a different port)
 EXPOSE 3000
 
-# Start the Express app
-CMD ["node", "server.js"]
+# Command to start your Node.js app
+CMD ["npm", "start"]
