@@ -16,8 +16,8 @@ Make sure you have Docker and Docker Compose installed on your system.
 3. Create a `.env` file in the root directory with the following content (modify as needed):
 
 MYSQL_ROOT_PASSWORD=your_mysql_root_password
-MYSQL_USER=your_mysql_user
-MYSQL_PASSWORD=your_mysql_password
+MYSQL_USER= root
+MYSQL_PASSWORD= ''
 
 
 
@@ -28,7 +28,7 @@ MYSQL_PASSWORD=your_mysql_password
 ## Endpoints
 - `POST /identify`: The endpoint for identifying contacts.
 
-## Notes
-- Make sure to replace `your_mysql_root_password`, `your_mysql_user`, and `your_mysql_password` with your actual MySQL credentials in the `.env` file and `docker-compose.yml`.
+## Commands to run 
 
-- If you need to change the port on which the app listens, update the `EXPOSE` statement in the `Dockerfile` and the port mapping in the `docker-compose.yml` file accordingly.
+docker-compose build
+docker-compose up -d
