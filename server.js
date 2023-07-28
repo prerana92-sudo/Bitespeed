@@ -186,12 +186,37 @@ const identifyContact = async (req, res) => {
       return res.status(200).json(responsePayload);
     }
 
+     // If no secondary contact creation is necessary, return the primary contact and secondary contacts
+
+     if (
+      (primaryContact.email === email && primaryContact.phoneNumber === phoneNumber) ||
+      secondaryContacts.some(
+        (contact) => contact.email === email && contact.phoneNumber === phoneNumber
+      )
+    ) {
+      // This block will execute if the email or phoneNumber matches either the primary contact or any of the secondary contacts.
+      
+      const responsePayload = {
+        contact: {
+          primaryContactId: primaryContact ? primaryContact.id : null,
+          emails: [primaryContact?.email, ...secondaryContacts.map((contact) => contact.email)].filter(Boolean),
+          phoneNumbers: [primaryContact?.phoneNumber].filter(Boolean),
+          secondaryContactIds: secondaryContacts.map((contact) => contact.id),
+        },
+      };
+      return res.status(200).json(responsePayload);
+    }
+      
+     
+   
+
+
     // If existing primary contact is found and new request has different email or phoneNumber, create a secondary contact
      
     if (
       primaryContact &&
-      ((email && phoneNumber!= null && primaryContact.email !== email && secondaryContacts.email != email) ||
-        (phoneNumber && email != null && primaryContact.phoneNumber !== phoneNumber && secondaryContacts.phoneNumber != phoneNumber)) 
+      ((email && phoneNumber!= null && primaryContact.email !== email) ||
+        (phoneNumber && email != null && primaryContact.phoneNumber !== phoneNumber)) 
     ) {
       
       
@@ -223,17 +248,8 @@ const identifyContact = async (req, res) => {
         return res.status(200).json(responsePayload);
       }
 
-    // If no secondary contact creation is necessary, return the primary contact and secondary contacts
-    const responsePayload = {
-      contact: {
-        primaryContactId: primaryContact ? primaryContact.id : null,
-        emails: [primaryContact?.email, ...secondaryContacts.map((contact) => contact.email)].filter(Boolean),
-        phoneNumbers: [primaryContact?.phoneNumber].filter(Boolean),
-        secondaryContactIds: secondaryContacts.map((contact) => contact.id),
-      },
-    };
+   
 
-    return res.status(200).json(responsePayload);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: 'Internal Server Error' });
