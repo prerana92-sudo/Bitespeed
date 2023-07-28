@@ -32,3 +32,7 @@ MYSQL_PASSWORD= ''
 
 docker-compose build
 docker-compose up -d
+
+#to check logs (can take some time to run the database and to migrations to be successfully!)
+docker logs bitespeed-app-1
+docker logs bitespeed-db-1  
