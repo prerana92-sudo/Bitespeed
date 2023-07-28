@@ -63,8 +63,8 @@ const identifyContact = async (req, res) => {
       }
       
 
-        primaryContact = results.find((contact) => contact.linkPrecedence === 'primary');
-        secondaryContacts = results.filter(
+             primaryContact = results.filter((contact) => contact.linkPrecedence === 'primary');
+             secondaryContacts = results.filter(
                   (contact) => contact.linkPrecedence === 'secondary'
                 );
         
@@ -102,8 +102,8 @@ const identifyContact = async (req, res) => {
 
         
                 // Identify the primary contact and secondary contacts
-                 primaryContact = results.find((contact) => contact.linkPrecedence === 'primary');
-                 secondaryContacts = results.filter(
+                primaryContact = results.filter((contact) => contact.linkPrecedence === 'primary');
+                secondaryContacts = results.filter(
                   (contact) => contact.linkPrecedence === 'secondary'
                 );
 
@@ -116,7 +116,9 @@ const identifyContact = async (req, res) => {
                 };
 
                 const isPrimaryContactExist = (email, phoneNumber) => {
-                  return (primaryContact.email == email && primaryContact.phoneNumber == phoneNumber)
+                  return primaryContact.some(
+                    (contact) => contact.email === email && contact.phoneNumber === phoneNumber
+                  );
                 }
 
                 if(isSecondaryContactExist(email, phoneNumber)){
@@ -128,8 +130,8 @@ const identifyContact = async (req, res) => {
                   bindings = [email, phoneNumber, email, phoneNumber];
                   [results] = await knexInstance.raw(query, bindings);
           
-                  primaryContact = results.find((contact) => contact.linkPrecedence === 'primary');
-                  secondaryContacts = results.filter(
+                   primaryContact = results.find((contact) => contact.linkPrecedence === 'primary');
+                   secondaryContacts = results.filter(
                    (contact) => contact.linkPrecedence === 'secondary'
                  );
            
