@@ -50,7 +50,8 @@ const identifyContact = async (req, res) => {
   }
 
 
-  if((email && phoneNumber == null) || (phoneNumber && email == null)){
+  if((!phoneNumber || !email)){
+
       query = `SELECT c1.* FROM contacts c1
                LEFT JOIN contacts c2 ON c1.id = c2.linkedId OR c1.linkedId = c2.id  
                WHERE c1.email = ? OR c1.phoneNumber = ? OR c2.email = ? OR c2.phoneNumber = ?`;
@@ -63,7 +64,7 @@ const identifyContact = async (req, res) => {
       }
       
 
-             primaryContact = results.filter((contact) => contact.linkPrecedence === 'primary');
+             primaryContact = results.find((contact) => contact.linkPrecedence === 'primary');
              secondaryContacts = results.filter(
                   (contact) => contact.linkPrecedence === 'secondary'
                 );
