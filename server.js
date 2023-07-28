@@ -109,7 +109,7 @@ const identifyContact = async (req, res) => {
     );
 
 
-    console.log(primaryContact, secondaryContacts)
+    console.log(primaryContact,  secondaryContacts)
 
 
   
@@ -178,7 +178,7 @@ const identifyContact = async (req, res) => {
         contact: {
           primaryContactId: primaryContact ? primaryContact.id : null,
           emails: [primaryContact?.email, ...secondaryContacts.map((contact) => contact.email)].filter(Boolean),
-          phoneNumbers: [primaryContact?.phoneNumber, ...secondaryContacts.map((contact) => contact.phoneNumber)].filter(Boolean),
+          phoneNumbers: [primaryContact?.phoneNumber].filter(Boolean),
           secondaryContactIds: secondaryContacts.map((contact) => contact.id),
         },
       };
@@ -222,15 +222,15 @@ const identifyContact = async (req, res) => {
         return res.status(200).json(responsePayload);
       }
 
-    // If no secondary contact creation is necessary, return the primary contact and secondary contacts
-    const responsePayload = {
-      contact: {
-        primaryContactId: primaryContact ? primaryContact.id : null,
-        emails: [primaryContact?.email, ...secondaryContacts.map((contact) => contact.email)].filter(Boolean),
-        phoneNumbers: [primaryContact?.phoneNumber, ...secondaryContacts.map((contact) => contact.phoneNumber)].filter(Boolean),
-        secondaryContactIds: secondaryContacts.map((contact) => contact.id),
-      },
-    };
+    // // If no secondary contact creation is necessary, return the primary contact and secondary contacts
+    // const responsePayload = {
+    //   contact: {
+    //     primaryContactId: primaryContact ? primaryContact.id : null,
+    //     emails: [primaryContact?.email, ...secondaryContacts.map((contact) => contact.email)].filter(Boolean),
+    //     phoneNumbers: [primaryContact?.phoneNumber].filter(Boolean),
+    //     secondaryContactIds: secondaryContacts.map((contact) => contact.id),
+    //   },
+    // };
 
     return res.status(200).json(responsePayload);
   } catch (error) {
