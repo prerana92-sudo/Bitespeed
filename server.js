@@ -109,6 +109,9 @@ const identifyContact = async (req, res) => {
     );
 
 
+    console.log(primaryContact, secondaryContacts)
+
+
   
   // Check if the email and phone exist in different contacts
   const emailExistsInDifferentContact = filteredResult.some(
@@ -175,7 +178,7 @@ const identifyContact = async (req, res) => {
         contact: {
           primaryContactId: primaryContact ? primaryContact.id : null,
           emails: [primaryContact?.email, ...secondaryContacts.map((contact) => contact.email)].filter(Boolean),
-          phoneNumbers: [primaryContact?.phoneNumber].filter(Boolean),
+          phoneNumbers: [primaryContact?.phoneNumber, ...secondaryContacts.map((contact) => contact.phoneNumber)].filter(Boolean),
           secondaryContactIds: secondaryContacts.map((contact) => contact.id),
         },
       };
@@ -224,7 +227,7 @@ const identifyContact = async (req, res) => {
       contact: {
         primaryContactId: primaryContact ? primaryContact.id : null,
         emails: [primaryContact?.email, ...secondaryContacts.map((contact) => contact.email)].filter(Boolean),
-        phoneNumbers: [primaryContact?.phoneNumber].filter(Boolean),
+        phoneNumbers: [primaryContact?.phoneNumber, ...secondaryContacts.map((contact) => contact.phoneNumber)].filter(Boolean),
         secondaryContactIds: secondaryContacts.map((contact) => contact.id),
       },
     };
