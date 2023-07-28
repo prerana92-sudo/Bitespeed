@@ -1,7 +1,6 @@
 const express = require('express');
 const knex = require('knex');
 require('dotenv').config();
-const contactsRouter = require('./src/routes/contact.routes');
 const app = express();
 app.use(express.json());
 
@@ -60,7 +59,8 @@ const identifyContact = async (req, res) => {
     try {
       const [results] = await knexInstance.raw(query, bindings);
 
-    //incase when one parameter is null and email or phone doesnot exist.
+    // //incase when one parameter is null and email or phone doesnot exist.
+    if(bindings.length != 0)
     if(results.length == 0){
       return res.status(400).json({ error: 'Invalid data. User not found!' });
     }
