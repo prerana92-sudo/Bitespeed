@@ -115,6 +115,9 @@ const identifyContact = async (req, res) => {
                   );
                 };
 
+                const isPrimaryContactExist = (email, phoneNumber) => {
+                  return (primaryContact.email == email && primaryContact.phoneNumber == phoneNumber)
+                }
 
                 if(isSecondaryContactExist(email, phoneNumber)){
                    
@@ -143,36 +146,34 @@ const identifyContact = async (req, res) => {
 
                 }
 
+                if(isPrimaryContactExist(email, phoneNumber)){
 
-                if (primaryContact && (primaryContact.email == email || primaryContact.phoneNumber == phoneNumber)) {
-
-                 // if request has primary contact's phone or email, add it as a secondary contact
-
-                  if (!isSecondaryContactExist(email, phoneNumber)) {
-                    responsePayload = await createSecondaryContact(primaryContact, email, phoneNumber);
-                    return res.status(200).json(responsePayload);
-
-                  } else {
-
-
-                    primaryContact = filteredResult.find((contact) => contact.linkPrecedence === 'primary');
-                    secondaryContacts = filteredResult.filter(
-                     (contact) => contact.linkPrecedence === 'secondary'
-                   );
+                  query = `SELECT c1.* FROM contacts c1
+                  LEFT JOIN contacts c2 ON c1.id = c2.linkedId OR c1.linkedId = c2.id  
+                  WHERE c1.email = ? OR c1.phoneNumber = ? OR c2.email = ? OR c2.phoneNumber = ?`;
+       
+                  bindings = [email, phoneNumber, email, phoneNumber];
+                  [results] = await knexInstance.raw(query, bindings);
+          
+                  primaryContact = results.find((contact) => contact.linkPrecedence === 'primary');
+                  secondaryContacts = results.filter(
+                   (contact) => contact.linkPrecedence === 'secondary'
+                 );
+           
+                   responsePayload = {
+                     contact: {
+                       primaryContactId: primaryContact ? primaryContact.id : null,
+                       emails: [primaryContact?.email, ...secondaryContacts.map((contact) => contact.email)].filter(Boolean),
+                       phoneNumbers: [...new Set([primaryContact?.phoneNumber, ...secondaryContacts.map((contact) => contact.phoneNumber)].filter(Boolean))],
+                       secondaryContactIds: secondaryContacts.map((contact) => contact.id),
+                     },
+                   };
    
-                    // Secondary contact already exists, return the responsePayload with all data
-                    responsePayload = {
-                      contact: {
-                        primaryContactId: primaryContact ? primaryContact.id : null,
-                        emails: [primaryContact?.email, ...secondaryContacts.map((contact) => contact.email)].filter(Boolean),
-                        phoneNumbers: [...new Set([primaryContact?.phoneNumber].filter(Boolean))],
-                        secondaryContactIds: secondaryContacts.map((contact) => contact.id),
-                      },
-                    };
-
-                    return res.status(200).json(responsePayload);
-                  }
+                   return res.status(200).json(responsePayload);
                 }
+
+
+               
                 
        
 
@@ -204,6 +205,17 @@ const identifyContact = async (req, res) => {
 
                   return res.status(200).json(responsePayload);
                 }
+
+                if (primaryContact && (primaryContact.email == email || primaryContact.phoneNumber == phoneNumber)) {
+
+                  // if request has primary contact's phone or email, add it as a secondary contact
+ 
+                   if (!isSecondaryContactExist(email, phoneNumber)) {
+                     responsePayload = await createSecondaryContact(primaryContact, email, phoneNumber);
+                     return res.status(200).json(responsePayload);
+ 
+                   } 
+                 }
 
       } catch (error) {
          console.error(error);
