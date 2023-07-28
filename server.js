@@ -206,16 +206,16 @@ const identifyContact = async (req, res) => {
                   return res.status(200).json(responsePayload);
                 }
 
-                if (primaryContact && (primaryContact.email == email || primaryContact.phoneNumber == phoneNumber)) {
 
-                  // if request has primary contact's phone or email, add it as a secondary contact
- 
-                   if (!isSecondaryContactExist(email, phoneNumber)) {
-                     responsePayload = await createSecondaryContact(primaryContact, email, phoneNumber);
-                     return res.status(200).json(responsePayload);
- 
-                   } 
-                 }
+              //create secondary contact if request has email or phoneNo of a primary contact
+                for (const contact of primaryContact) {
+                  if (contact.email === email || contact.phoneNumber === phoneNumber) {
+                    if (!isSecondaryContactExist(email, phoneNumber)) {
+                      const responsePayload = await createSecondaryContact(contact, email, phoneNumber);
+                      return res.status(200).json(responsePayload);
+                    }
+                  }
+                }
 
       } catch (error) {
          console.error(error);
