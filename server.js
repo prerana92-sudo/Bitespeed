@@ -60,10 +60,12 @@ const identifyContact = async (req, res) => {
       const [results] = await knexInstance.raw(query, bindings);
 
     // //incase when one parameter is null and email or phone doesnot exist.
-    if(bindings.length != 0)
-    if(results.length == 0){
-      return res.status(400).json({ error: 'Invalid data. User not found!' });
+    if(bindings.length != 0){
+      if(results.length == 0){
+        return res.status(400).json({ error: 'Invalid data. User not found!' });
+      }
     }
+   
 
     let filteredResult;
 
@@ -188,6 +190,8 @@ const identifyContact = async (req, res) => {
         (phoneNumber && email != null && primaryContact.phoneNumber !== phoneNumber)) 
     ) {
       
+      
+
       const [insertResult] = await knexInstance.raw(
           'INSERT INTO contacts (phoneNumber, email, linkedId, linkPrecedence) VALUES (?, ?, ?, "secondary")',
           [phoneNumber, email, primaryContact.id]
