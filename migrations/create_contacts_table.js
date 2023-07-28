@@ -10,8 +10,16 @@ exports.up = function (knex) {
       table.timestamps(true, true);
     });
   };
+
+  exports.up = function (knex) {
+    return knex.schema.alterTable('contacts', function (table) {
+      table.dropUnique(['phoneNumber']);
+      table.dropUnique(['email']);
+    });
+  };
   
   exports.down = function (knex) {
     return knex.schema.dropTable('contacts');
   };
-  
+
+
