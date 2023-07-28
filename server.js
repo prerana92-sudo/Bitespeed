@@ -187,10 +187,11 @@ const identifyContact = async (req, res) => {
     }
 
     // If existing primary contact is found and new request has different email or phoneNumber, create a secondary contact
+     
     if (
       primaryContact &&
-      ((email && phoneNumber!= null && primaryContact.email !== email) ||
-        (phoneNumber && email != null && primaryContact.phoneNumber !== phoneNumber)) 
+      ((email && phoneNumber!= null && primaryContact.email !== email && secondaryContacts.email != email) ||
+        (phoneNumber && email != null && primaryContact.phoneNumber !== phoneNumber && secondaryContacts.phoneNumber != phoneNumber)) 
     ) {
       
       
@@ -222,15 +223,15 @@ const identifyContact = async (req, res) => {
         return res.status(200).json(responsePayload);
       }
 
-    // // If no secondary contact creation is necessary, return the primary contact and secondary contacts
-    // const responsePayload = {
-    //   contact: {
-    //     primaryContactId: primaryContact ? primaryContact.id : null,
-    //     emails: [primaryContact?.email, ...secondaryContacts.map((contact) => contact.email)].filter(Boolean),
-    //     phoneNumbers: [primaryContact?.phoneNumber].filter(Boolean),
-    //     secondaryContactIds: secondaryContacts.map((contact) => contact.id),
-    //   },
-    // };
+    // If no secondary contact creation is necessary, return the primary contact and secondary contacts
+    const responsePayload = {
+      contact: {
+        primaryContactId: primaryContact ? primaryContact.id : null,
+        emails: [primaryContact?.email, ...secondaryContacts.map((contact) => contact.email)].filter(Boolean),
+        phoneNumbers: [primaryContact?.phoneNumber].filter(Boolean),
+        secondaryContactIds: secondaryContacts.map((contact) => contact.id),
+      },
+    };
 
     return res.status(200).json(responsePayload);
   } catch (error) {
