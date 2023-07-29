@@ -144,8 +144,8 @@ const identifyContact = async (req, res) => {
 
                 if(isPrimaryContactExist(email, phoneNumber)){
 
-                  responsePayload = await getUserContacts(email, phoneNumber);
-                  return res.status(200).json(responsePayload);
+                   responsePayload = await getUserContacts(email, phoneNumber);
+                   return res.status(200).json(responsePayload);
                 }
 
 
@@ -315,7 +315,7 @@ const getUserContacts = async(email, phoneNumber) => {
        .map((contact) => contact.id),
    },
  };
-}else{
+}else if(phoneNumber == primaryContact.phoneNumber){
   responsePayload = {
    contact: {
      primaryContactId: primaryContact.id,
@@ -325,6 +325,15 @@ const getUserContacts = async(email, phoneNumber) => {
        .map((contact) => contact.id),
    },
  };
+}else{
+  responsePayload = {
+    contact: {
+      primaryContactId: primaryContact ? primaryContact.id : null,
+      emails: [primaryContact?.email, ...secondaryContacts.map((contact) => contact.email)].filter(Boolean),
+      phoneNumbers: [...new Set([primaryContact?.phoneNumber, ...secondaryContacts.map((contact) => contact.phoneNumber)].filter(Boolean))],
+      secondaryContactIds: secondaryContacts.map((contact) => contact.id),
+    },
+  };
 }
 
    return responsePayload;
