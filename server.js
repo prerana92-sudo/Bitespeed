@@ -69,27 +69,20 @@ const identifyContact = async (req, res) => {
                   (contact) => contact.linkPrecedence === 'secondary'
                 );
         
-                if(email == primaryContact.email){
-                  responsePayload = {
-                   contact: {
-                     primaryContactId: primaryContact.id,
-                     emails: [...new Set([primaryContact?.email].filter(Boolean))],
-                     phoneNumbers: secondaryContacts.map((contact) => contact.phoneNumber).filter(Boolean),
-                     secondaryContactIds: secondaryContacts
-                       .map((contact) => contact.id),
-                   },
-                 };
-               }else{
-                  responsePayload = {
-                   contact: {
-                     primaryContactId: primaryContact.id,
-                     emails: secondaryContacts.map((contact) => contact.email).filter(Boolean),
-                     phoneNumbers:[...new Set([primaryContact?.phoneNumber].filter(Boolean))],
-                     secondaryContactIds: secondaryContacts
-                       .map((contact) => contact.id),
-                   },
-                 };
-               }
+                responsePayload = {
+                  contact: {
+                    primaryContactId: primaryContact ? primaryContact.id : null,
+                    emails: [
+                      primaryContact?.email,
+                      ...secondaryContacts.map((contact) => contact.email)
+                    ].filter((email, index, self) => email && self.indexOf(email) === index),
+                    phoneNumbers: [
+                      primaryContact?.phoneNumber,
+                      ...secondaryContacts.map((contact) => contact.phoneNumber)
+                    ].filter((phone, index, self) => phone && self.indexOf(phone) === index),
+                    secondaryContactIds: secondaryContacts.map((contact) => contact.id),
+                  },
+                };
 
                 return res.status(200).json(responsePayload);
 
@@ -151,12 +144,18 @@ const identifyContact = async (req, res) => {
                  );
            
                    responsePayload = {
-                     contact: {
-                       primaryContactId: primaryContact ? primaryContact.id : null,
-                       emails: [primaryContact?.email, ...secondaryContacts.map((contact) => contact.email)].filter(Boolean),
-                       phoneNumbers: [...new Set([primaryContact?.phoneNumber, ...secondaryContacts.map((contact) => contact.phoneNumber)].filter(Boolean))],
-                       secondaryContactIds: secondaryContacts.map((contact) => contact.id),
-                     },
+                    contact: {
+                      primaryContactId: primaryContact ? primaryContact.id : null,
+                      emails: [
+                        primaryContact?.email,
+                        ...secondaryContacts.map((contact) => contact.email)
+                      ].filter((email, index, self) => email && self.indexOf(email) === index),
+                      phoneNumbers: [
+                        primaryContact?.phoneNumber,
+                        ...secondaryContacts.map((contact) => contact.phoneNumber)
+                      ].filter((phone, index, self) => phone && self.indexOf(phone) === index),
+                      secondaryContactIds: secondaryContacts.map((contact) => contact.id),
+                    },
                    };
    
                    return res.status(200).json(responsePayload);
@@ -178,12 +177,18 @@ const identifyContact = async (req, res) => {
                  );
            
                    responsePayload = {
-                     contact: {
-                       primaryContactId: primaryContact ? primaryContact.id : null,
-                       emails: [primaryContact?.email, ...secondaryContacts.map((contact) => contact.email)].filter(Boolean),
-                       phoneNumbers: [...new Set([primaryContact?.phoneNumber, ...secondaryContacts.map((contact) => contact.phoneNumber)].filter(Boolean))],
-                       secondaryContactIds: secondaryContacts.map((contact) => contact.id),
-                     },
+                    contact: {
+                      primaryContactId: primaryContact ? primaryContact.id : null,
+                      emails: [
+                        primaryContact?.email,
+                        ...secondaryContacts.map((contact) => contact.email)
+                      ].filter((email, index, self) => email && self.indexOf(email) === index),
+                      phoneNumbers: [
+                        primaryContact?.phoneNumber,
+                        ...secondaryContacts.map((contact) => contact.phoneNumber)
+                      ].filter((phone, index, self) => phone && self.indexOf(phone) === index),
+                      secondaryContactIds: secondaryContacts.map((contact) => contact.id),
+                    },
                    };
    
                    return res.status(200).json(responsePayload);
@@ -256,12 +261,18 @@ const identifyContact = async (req, res) => {
                    );
              
                      responsePayload = {
-                       contact: {
-                         primaryContactId: primaryContact ? primaryContact.id : null,
-                         emails: [primaryContact?.email, ...secondaryContacts.map((contact) => contact.email)].filter(Boolean),
-                         phoneNumbers: [...new Set([primaryContact?.phoneNumber, ...secondaryContacts.map((contact) => contact.phoneNumber)].filter(Boolean))],
-                         secondaryContactIds: secondaryContacts.map((contact) => contact.id),
-                       },
+                      contact: {
+                        primaryContactId: primaryContact ? primaryContact.id : null,
+                        emails: [
+                          primaryContact?.email,
+                          ...secondaryContacts.map((contact) => contact.email)
+                        ].filter((email, index, self) => email && self.indexOf(email) === index),
+                        phoneNumbers: [
+                          primaryContact?.phoneNumber,
+                          ...secondaryContacts.map((contact) => contact.phoneNumber)
+                        ].filter((phone, index, self) => phone && self.indexOf(phone) === index),
+                        secondaryContactIds: secondaryContacts.map((contact) => contact.id),
+                      },
                      };
      
                      return res.status(200).json(responsePayload);
