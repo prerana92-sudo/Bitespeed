@@ -234,10 +234,21 @@ const identifyContact = async (req, res) => {
               //create secondary contact if request has email or phoneNo of a primary contact and if email or phone no doesnot already exists in any contact
 
               const isContactAlreadyExist = async (email, phoneNumber) => {
-                const [existingContacts] = await knexInstance.raw(
-                  'SELECT * FROM contacts WHERE email = ? OR phoneNumber = ?',
-                  [email, phoneNumber]
-                );
+                const query = `
+                  SELECT * FROM contacts
+                  WHERE (email = ? OR phoneNumber = ?) AND linkPrecedence = 'primary'
+                  UNION
+                  SELECT * FROM contacts
+                  WHERE (email = ? OR phoneNumber = ?) AND linkPrecedence = 'secondary'
+                `;
+              
+                const [existingContacts] = await knexInstance.raw(query, [
+                  email,
+                  phoneNumber,
+                  email,
+                  phoneNumber,
+                ]);
+              
                 return existingContacts.length > 0;
               };
               
