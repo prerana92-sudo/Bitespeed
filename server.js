@@ -108,6 +108,8 @@ const identifyContact = async (req, res) => {
                   (contact) => contact.linkPrecedence === 'secondary'
                 );
 
+                console.log(primaryContact,"++++++++++primary contacts")
+                console.log(secondaryContacts,"++++++++++++++secondary contacts")
 
                 // Function to check if a secondary contact with the given email and phone already exists
                 const isSecondaryContactExist = (email, phoneNumber) => {
