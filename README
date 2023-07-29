@@ -15,9 +15,10 @@ Make sure you have Docker and Docker Compose installed on your system.
 
 3. Create a `.env` file in the root directory with the following content (modify as needed):
 
-MYSQL_ROOT_PASSWORD=your_mysql_root_password
-MYSQL_USER= root
-MYSQL_PASSWORD= ''
+MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+MYSQL_DATABASE: Bitespeed_Contacts
+MYSQL_USER= 'root'
+MYSQL_PASSWORD= ''  otherwise run the code as it is it would still work with default values.
 
 
 
@@ -33,6 +34,7 @@ MYSQL_PASSWORD= ''
 docker-compose build
 docker-compose up -d
 
-#to check logs (can take some time to run the database and to migrations to be successfully!)
+#to check logs (can take some time to run the database and for migrations to be successfull! Kindly restart few times to get it successfully running.)
+
 docker logs bitespeed-app-1
 docker logs bitespeed-db-1  
