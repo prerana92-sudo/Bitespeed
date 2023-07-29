@@ -261,29 +261,56 @@ const createSecondaryContact = async(primaryContact, email, phoneNumber) => {
     'INSERT INTO contacts (phoneNumber, email, linkedId, linkPrecedence) VALUES (?, ?, ?, "secondary")',
     [phoneNumber, email, primaryContact.id]
   );
-
-  console.log("++++++++++inside secondary contact creation");
-  console.log(insertResult)
-
+  
+  
+  
   // Retrieve all primary and secondary contacts for the user
   const [allContacts] = await knexInstance.raw(
     'SELECT * FROM contacts WHERE id = ? OR linkedId = ?',
     [primaryContact.id, primaryContact.id]
   );
-
+  
+  // Helper function to check if an email or phone number matches with the primary contact's data
+  const matchesPrimaryContact = (contact, primaryContact) => {
+    return (
+      (contact.email && contact.email === primaryContact.email) ||
+      (contact.phoneNumber && contact.phoneNumber === primaryContact.phoneNumber)
+    );
+  };
+  
+  const uniqueEmails = [];
+  const uniquePhoneNumbers = [];
+  
+  allContacts.forEach((contact) => {
+    // Skip the primary contact itself
+    if (contact.id === primaryContact.id) {
+      return;
+    }
+  
+    if (!matchesPrimaryContact(contact, primaryContact)) {
+      if (contact.email && !uniqueEmails.includes(contact.email)) {
+        uniqueEmails.push(contact.email);
+      }
+  
+      if (contact.phoneNumber && !uniquePhoneNumbers.includes(contact.phoneNumber)) {
+        uniquePhoneNumbers.push(contact.phoneNumber);
+      }
+    }
+  });
+  
   const responsePayload = {
     contact: {
       primaryContactId: primaryContact.id,
-      emails: allContacts.map((contact) => contact.email).filter(Boolean),
-      phoneNumbers:[...new Set([primaryContact?.phoneNumber].filter(Boolean))],
+      emails: uniqueEmails.filter(Boolean),
+      phoneNumbers: uniquePhoneNumbers.filter(Boolean),
       secondaryContactIds: allContacts
-        .filter((contact) => contact.linkPrecedence === 'secondary')
+        .filter((contact) => contact.linkPrecedence === 'secondary' && !matchesPrimaryContact(contact, primaryContact))
         .map((contact) => contact.id),
     },
   };
 
-   return responsePayload;
-
+  return responsePayload;
+  
 }
 
 
