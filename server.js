@@ -74,7 +74,7 @@ const identifyContact = async (req, res) => {
                    contact: {
                      primaryContactId: primaryContact.id,
                      emails: [...new Set([primaryContact?.email].filter(Boolean))],
-                     phoneNumbers: secondaryContacts.map((contact) => contact.phoneNumber).filter(Boolean),
+                     phoneNumbers: results.map((contact) => contact.phoneNumber).filter(Boolean),
                      secondaryContactIds: secondaryContacts
                        .map((contact) => contact.id),
                    },
@@ -83,7 +83,7 @@ const identifyContact = async (req, res) => {
                   responsePayload = {
                    contact: {
                      primaryContactId: primaryContact.id,
-                     emails: secondaryContacts.map((contact) => contact.email).filter(Boolean),
+                     emails: results.map((contact) => contact.email).filter(Boolean),
                      phoneNumbers:[...new Set([primaryContact?.phoneNumber].filter(Boolean))],
                      secondaryContactIds: secondaryContacts
                        .map((contact) => contact.id),
@@ -310,7 +310,7 @@ const getUserContacts = async(email, phoneNumber) => {
    contact: {
      primaryContactId: primaryContact.id,
      emails: [...new Set([primaryContact?.email].filter(Boolean))],
-     phoneNumbers: secondaryContacts.map((contact) => contact.phoneNumber).filter(Boolean),
+     phoneNumbers: results.map((contact) => contact.phoneNumber).filter(Boolean),
      secondaryContactIds: secondaryContacts
        .map((contact) => contact.id),
    },
@@ -319,7 +319,7 @@ const getUserContacts = async(email, phoneNumber) => {
   responsePayload = {
    contact: {
      primaryContactId: primaryContact.id,
-     emails: secondaryContacts.map((contact) => contact.email).filter(Boolean),
+     emails: results.map((contact) => contact.email).filter(Boolean),
      phoneNumbers:[...new Set([primaryContact?.phoneNumber].filter(Boolean))],
      secondaryContactIds: secondaryContacts
        .map((contact) => contact.id),
