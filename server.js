@@ -231,65 +231,67 @@ const identifyContact = async (req, res) => {
 
 
 
-              //create secondary contact if request has email or phoneNo of a primary contact and if email or phone no doesnot already exists in any contact
-
+              //create secondary contact if request has email or phoneNo of a primary contact . If email is in a primary contact and phone no is in a sec contact or vice versa the  simply fetch data for user and return contact details.
+              
               const isContactAlreadyExist = async (email, phoneNumber) => {
                 const query = `
                   SELECT * FROM contacts
-                  WHERE (email = ? OR phoneNumber = ?) AND linkPrecedence = 'primary'
-                  UNION
-                  SELECT * FROM contacts
-                  WHERE (email = ? OR phoneNumber = ?) AND linkPrecedence = 'secondary'
+                  WHERE (email = ? OR phoneNumber = ?) AND linkPrecedence IN ('primary', 'secondary')
                 `;
               
-                const [existingContacts] = await knexInstance.raw(query, [
-                  email,
-                  phoneNumber,
-                  email,
-                  phoneNumber,
-                ]);
-              
+                const [existingContacts] = await knexInstance.raw(query, [email, phoneNumber]);
                 return existingContacts.length > 0;
               };
               
+              const createSecondaryContactIfNotExist = async (primaryContact, email, phoneNumber) => {
+                // Create a new secondary contact
+                const responsePayload = await createSecondaryContact(primaryContact, email, phoneNumber);
+                return responsePayload;
+              };
+              
+              // Usage:
               for (const contact of primaryContact) {
                 if (contact.email === email || contact.phoneNumber === phoneNumber) {
-                  // Check if the email or phone number already exists in primary or secondary contacts
-                  if (!(await isContactAlreadyExist(email, phoneNumber))) {
-                    const responsePayload = await createSecondaryContact(contact, email, phoneNumber);
-                    return res.status(200).json(responsePayload);
-                  } else {
-                    query = `SELECT c1.* FROM contacts c1
-                    LEFT JOIN contacts c2 ON c1.id = c2.linkedId OR c1.linkedId = c2.id  
-                    WHERE c1.email = ? OR c1.phoneNumber = ? OR c2.email = ? OR c2.phoneNumber = ?`;
-         
-                    bindings = [email, phoneNumber, email, phoneNumber];
-                    [results] = await knexInstance.raw(query, bindings);
-            
-                     primaryContact = results.find((contact) => contact.linkPrecedence === 'primary');
-                     secondaryContacts = results.filter(
-                     (contact) => contact.linkPrecedence === 'secondary'
-                   );
-             
-                     responsePayload = {
+                  const isExistingContact = await isContactAlreadyExist(email, phoneNumber);
+                  if (isExistingContact) {
+                    // Scenario: email or phone number is associated with different primary and secondary contacts
+                    const [results] = await knexInstance.raw(
+                      `
+                      SELECT c1.* FROM contacts c1
+                      LEFT JOIN contacts c2 ON c1.id = c2.linkedId OR c1.linkedId = c2.id  
+                      WHERE c1.email = ? OR c1.phoneNumber = ? OR c2.email = ? OR c2.phoneNumber = ?
+                    `,
+                      [email, phoneNumber, email, phoneNumber]
+                    );
+              
+                    const primaryContacts = results.filter((contact) => contact.linkPrecedence === 'primary');
+                    const secondaryContacts = results.filter((contact) => contact.linkPrecedence === 'secondary');
+              
+                    const responsePayload = {
                       contact: {
-                        primaryContactId: primaryContact ? primaryContact.id : null,
+                        primaryContactId: primaryContacts.length > 0 ? primaryContacts[0].id : null,
                         emails: [
-                          primaryContact?.email,
-                          ...secondaryContacts.map((contact) => contact.email)
+                          ...(primaryContacts.length > 0 ? [primaryContacts[0].email] : []),
+                          ...secondaryContacts.map((contact) => contact.email),
                         ].filter((email, index, self) => email && self.indexOf(email) === index),
                         phoneNumbers: [
-                          primaryContact?.phoneNumber,
-                          ...secondaryContacts.map((contact) => contact.phoneNumber)
+                          ...(primaryContacts.length > 0 ? [primaryContacts[0].phoneNumber] : []),
+                          ...secondaryContacts.map((contact) => contact.phoneNumber),
                         ].filter((phone, index, self) => phone && self.indexOf(phone) === index),
                         secondaryContactIds: secondaryContacts.map((contact) => contact.id),
                       },
-                     };
-     
-                     return res.status(200).json(responsePayload);
+                    };
+              
+                    return res.status(200).json(responsePayload);
+                  } else {
+                    // Scenario: email or phone number matches a primary contact, create a new secondary contact
+                    const responsePayload = await createSecondaryContactIfNotExist(contact, email, phoneNumber);
+                    return res.status(200).json(responsePayload);
                   }
                 }
               }
+              
+              
               
        } catch (error) {
          console.error(error);
