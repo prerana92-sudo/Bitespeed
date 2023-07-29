@@ -69,14 +69,29 @@ const identifyContact = async (req, res) => {
                   (contact) => contact.linkPrecedence === 'secondary'
                 );
         
-                responsePayload = {
-                  contact: {
-                    primaryContactId: primaryContact ? primaryContact.id : null,
-                    emails: [primaryContact?.email, ...secondaryContacts.map((contact) => contact.email)].filter(Boolean),
-                    phoneNumbers: [...new Set([primaryContact?.phoneNumber, ...secondaryContacts.map((contact) => contact.phoneNumber)].filter(Boolean))],
-                    secondaryContactIds: secondaryContacts.map((contact) => contact.id),
-                  },
-                };
+                if(email == primaryContact.email){
+                  responsePayload = {
+                   contact: {
+                     primaryContactId: primaryContact.id,
+                     emails: [...new Set([primaryContact?.email].filter(Boolean))],
+                     phoneNumbers: allContacts.map((contact) => contact.phoneNumber).filter(Boolean),
+                     secondaryContactIds: allContacts
+                       .filter((contact) => contact.linkPrecedence === 'secondary')
+                       .map((contact) => contact.id),
+                   },
+                 };
+               }else{
+                  responsePayload = {
+                   contact: {
+                     primaryContactId: primaryContact.id,
+                     emails: allContacts.map((contact) => contact.email).filter(Boolean),
+                     phoneNumbers:[...new Set([primaryContact?.phoneNumber].filter(Boolean))],
+                     secondaryContactIds: allContacts
+                       .filter((contact) => contact.linkPrecedence === 'secondary')
+                       .map((contact) => contact.id),
+                   },
+                 };
+               }
 
                 return res.status(200).json(responsePayload);
 
@@ -108,8 +123,6 @@ const identifyContact = async (req, res) => {
                   (contact) => contact.linkPrecedence === 'secondary'
                 );
 
-                console.log(primaryContact,"++++++++++primary contacts")
-                console.log(secondaryContacts,"++++++++++++++secondary contacts")
 
                 // Function to check if a secondary contact with the given email and phone already exists
                 const isSecondaryContactExist = (email, phoneNumber) => {
