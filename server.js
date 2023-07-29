@@ -74,7 +74,7 @@ const identifyContact = async (req, res) => {
                    contact: {
                      primaryContactId: primaryContact.id,
                      emails: [...new Set([primaryContact?.email].filter(Boolean))],
-                     phoneNumbers: results.map((contact) => contact.phoneNumber).filter(Boolean),
+                     phoneNumbers: secondaryContacts.map((contact) => contact.phoneNumber).filter(Boolean),
                      secondaryContactIds: secondaryContacts
                        .map((contact) => contact.id),
                    },
@@ -83,7 +83,7 @@ const identifyContact = async (req, res) => {
                   responsePayload = {
                    contact: {
                      primaryContactId: primaryContact.id,
-                     emails: results.map((contact) => contact.email).filter(Boolean),
+                     emails: secondaryContacts.map((contact) => contact.email).filter(Boolean),
                      phoneNumbers:[...new Set([primaryContact?.phoneNumber].filter(Boolean))],
                      secondaryContactIds: secondaryContacts
                        .map((contact) => contact.id),
@@ -135,16 +135,57 @@ const identifyContact = async (req, res) => {
                   );
                 }
 
+
                 if(isSecondaryContactExist(email, phoneNumber)){
-                  
-                   responsePayload = await getUserContacts(email, phoneNumber);
+                   
+                  query = `SELECT c1.* FROM contacts c1
+                  LEFT JOIN contacts c2 ON c1.id = c2.linkedId OR c1.linkedId = c2.id  
+                  WHERE c1.email = ? OR c1.phoneNumber = ? OR c2.email = ? OR c2.phoneNumber = ?`;
+       
+                  bindings = [email, phoneNumber, email, phoneNumber];
+                  [results] = await knexInstance.raw(query, bindings);
+          
+                   primaryContact = results.find((contact) => contact.linkPrecedence === 'primary');
+                   secondaryContacts = results.filter(
+                   (contact) => contact.linkPrecedence === 'secondary'
+                 );
+           
+                   responsePayload = {
+                     contact: {
+                       primaryContactId: primaryContact ? primaryContact.id : null,
+                       emails: [primaryContact?.email, ...secondaryContacts.map((contact) => contact.email)].filter(Boolean),
+                       phoneNumbers: [...new Set([primaryContact?.phoneNumber, ...secondaryContacts.map((contact) => contact.phoneNumber)].filter(Boolean))],
+                       secondaryContactIds: secondaryContacts.map((contact) => contact.id),
+                     },
+                   };
+   
                    return res.status(200).json(responsePayload);
 
                 }
 
                 if(isPrimaryContactExist(email, phoneNumber)){
 
-                   responsePayload = await getUserContacts(email, phoneNumber);
+                  query = `SELECT c1.* FROM contacts c1
+                  LEFT JOIN contacts c2 ON c1.id = c2.linkedId OR c1.linkedId = c2.id  
+                  WHERE c1.email = ? OR c1.phoneNumber = ? OR c2.email = ? OR c2.phoneNumber = ?`;
+       
+                  bindings = [email, phoneNumber, email, phoneNumber];
+                  [results] = await knexInstance.raw(query, bindings);
+          
+                  primaryContact = results.find((contact) => contact.linkPrecedence === 'primary');
+                  secondaryContacts = results.filter(
+                   (contact) => contact.linkPrecedence === 'secondary'
+                 );
+           
+                   responsePayload = {
+                     contact: {
+                       primaryContactId: primaryContact ? primaryContact.id : null,
+                       emails: [primaryContact?.email, ...secondaryContacts.map((contact) => contact.email)].filter(Boolean),
+                       phoneNumbers: [...new Set([primaryContact?.phoneNumber, ...secondaryContacts.map((contact) => contact.phoneNumber)].filter(Boolean))],
+                       secondaryContactIds: secondaryContacts.map((contact) => contact.id),
+                     },
+                   };
+   
                    return res.status(200).json(responsePayload);
                 }
 
@@ -183,17 +224,52 @@ const identifyContact = async (req, res) => {
                 }
 
 
-              //create secondary contact if request has email or phoneNo of a primary contact
-                for (const contact of primaryContact) {
-                  if (contact.email === email || contact.phoneNumber === phoneNumber) {
-                    if (!isSecondaryContactExist(email, phoneNumber)) {
-                      const responsePayload = await createSecondaryContact(contact, email, phoneNumber);
-                      return res.status(200).json(responsePayload);
-                    }
+
+
+              //create secondary contact if request has email or phoneNo of a primary contact and if email or phone no doesnot already exists in any contact
+
+              const isContactAlreadyExist = async (email, phoneNumber) => {
+                const [existingContacts] = await knexInstance.raw(
+                  'SELECT * FROM contacts WHERE email = ? OR phoneNumber = ?',
+                  [email, phoneNumber]
+                );
+                return existingContacts.length > 0;
+              };
+              
+              for (const contact of primaryContact) {
+                if (contact.email === email || contact.phoneNumber === phoneNumber) {
+                  // Check if the email or phone number already exists in primary or secondary contacts
+                  if (!(await isContactAlreadyExist(email, phoneNumber))) {
+                    const responsePayload = await createSecondaryContact(contact, email, phoneNumber);
+                    return res.status(200).json(responsePayload);
+                  } else {
+                    query = `SELECT c1.* FROM contacts c1
+                    LEFT JOIN contacts c2 ON c1.id = c2.linkedId OR c1.linkedId = c2.id  
+                    WHERE c1.email = ? OR c1.phoneNumber = ? OR c2.email = ? OR c2.phoneNumber = ?`;
+         
+                    bindings = [email, phoneNumber, email, phoneNumber];
+                    [results] = await knexInstance.raw(query, bindings);
+            
+                     primaryContact = results.find((contact) => contact.linkPrecedence === 'primary');
+                     secondaryContacts = results.filter(
+                     (contact) => contact.linkPrecedence === 'secondary'
+                   );
+             
+                     responsePayload = {
+                       contact: {
+                         primaryContactId: primaryContact ? primaryContact.id : null,
+                         emails: [primaryContact?.email, ...secondaryContacts.map((contact) => contact.email)].filter(Boolean),
+                         phoneNumbers: [...new Set([primaryContact?.phoneNumber, ...secondaryContacts.map((contact) => contact.phoneNumber)].filter(Boolean))],
+                         secondaryContactIds: secondaryContacts.map((contact) => contact.id),
+                       },
+                     };
+     
+                     return res.status(200).json(responsePayload);
                   }
                 }
-
-      } catch (error) {
+              }
+              
+       } catch (error) {
          console.error(error);
          return res.status(500).json({ error: 'Internal Server Error' });
         }
@@ -289,55 +365,7 @@ const makeContactSecondary = async (primaryContact, secondaryContact) => {
   };
 };
 
-const getUserContacts = async(email, phoneNumber) => {
 
- let query = `SELECT c1.* FROM contacts c1
-  LEFT JOIN contacts c2 ON c1.id = c2.linkedId OR c1.linkedId = c2.id  
-  WHERE c1.email = ? OR c1.phoneNumber = ? OR c2.email = ? OR c2.phoneNumber = ?`;
-
- let bindings = [email, phoneNumber, email, phoneNumber];
- let [results] = await knexInstance.raw(query, bindings);
-
-  let primaryContact = results.find((contact) => contact.linkPrecedence === 'primary');
-  let secondaryContacts = results.filter(
-   (contact) => contact.linkPrecedence === 'secondary'
- );
-
- let responsePayload;
-
- if(email == primaryContact.email){
-  responsePayload = {
-   contact: {
-     primaryContactId: primaryContact.id,
-     emails: [...new Set([primaryContact?.email].filter(Boolean))],
-     phoneNumbers: results.map((contact) => contact.phoneNumber).filter(Boolean),
-     secondaryContactIds: secondaryContacts
-       .map((contact) => contact.id),
-   },
- };
-}else if(phoneNumber == primaryContact.phoneNumber){
-  responsePayload = {
-   contact: {
-     primaryContactId: primaryContact.id,
-     emails: results.map((contact) => contact.email).filter(Boolean),
-     phoneNumbers:[...new Set([primaryContact?.phoneNumber].filter(Boolean))],
-     secondaryContactIds: secondaryContacts
-       .map((contact) => contact.id),
-   },
- };
-}else{
-  responsePayload = {
-    contact: {
-      primaryContactId: primaryContact ? primaryContact.id : null,
-      emails: [primaryContact?.email, ...secondaryContacts.map((contact) => contact.email)].filter(Boolean),
-      phoneNumbers: [...new Set([primaryContact?.phoneNumber, ...secondaryContacts.map((contact) => contact.phoneNumber)].filter(Boolean))],
-      secondaryContactIds: secondaryContacts.map((contact) => contact.id),
-    },
-  };
-}
-
-   return responsePayload;
-}
 
 
 
