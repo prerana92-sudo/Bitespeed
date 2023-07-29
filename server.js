@@ -262,6 +262,9 @@ const createSecondaryContact = async(primaryContact, email, phoneNumber) => {
     [phoneNumber, email, primaryContact.id]
   );
 
+  console.log("++++++++++inside secondary contact creation");
+  console.log(insertResult)
+
   // Retrieve all primary and secondary contacts for the user
   const [allContacts] = await knexInstance.raw(
     'SELECT * FROM contacts WHERE id = ? OR linkedId = ?',
