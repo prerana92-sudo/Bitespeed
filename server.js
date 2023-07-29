@@ -74,7 +74,7 @@ const identifyContact = async (req, res) => {
                    contact: {
                      primaryContactId: primaryContact.id,
                      emails: [...new Set([primaryContact?.email].filter(Boolean))],
-                     phoneNumbers: allContacts.map((contact) => contact.phoneNumber).filter(Boolean),
+                     phoneNumbers: secondaryContacts.map((contact) => contact.phoneNumber).filter(Boolean),
                      secondaryContactIds: allContacts
                        .filter((contact) => contact.linkPrecedence === 'secondary')
                        .map((contact) => contact.id),
@@ -84,7 +84,7 @@ const identifyContact = async (req, res) => {
                   responsePayload = {
                    contact: {
                      primaryContactId: primaryContact.id,
-                     emails: allContacts.map((contact) => contact.email).filter(Boolean),
+                     emails: secondaryContacts.map((contact) => contact.email).filter(Boolean),
                      phoneNumbers:[...new Set([primaryContact?.phoneNumber].filter(Boolean))],
                      secondaryContactIds: allContacts
                        .filter((contact) => contact.linkPrecedence === 'secondary')
